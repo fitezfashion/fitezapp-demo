@@ -61,6 +61,10 @@
           color: red;
           margin-left: 5px;
       }
+      body {
+            margin: 20;
+            background-color: #F5F2EB ;
+        }
   </style>
 
 </head>
@@ -185,27 +189,36 @@
   </form>
 
     <h2 id="predictedSize" style="display: none;">My Fit: </h2>
+    <p id="timeTaken" style="display: none; font-size: 16px; font-weight: bold; color: #1a6b2f; border: 1px solid #1a6b2f; border-radius: 4px; padding: 8px 12px; display: none; width: fit-content; margin-top: 4px;">⏱ Response time: </p>
     <h2 id="error" style="color: red;"></h2>
 
     <script>
         // Disable right-click
-        document.addEventListener('contextmenu', event => event.preventDefault());
+        //document.addEventListener('contextmenu', event => event.preventDefault());
         // Disable specific keyboard shortcuts
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'F12' || 
-                (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) || 
-                (event.ctrlKey && event.key === 'U')) {
-                    event.preventDefault();
-                }
-        });
+        //document.addEventListener('keydown', function(event) {
+        //    if (event.key === 'F12' || 
+        //        (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) || 
+        //        (event.ctrlKey && event.key === 'U')) {
+        //            event.preventDefault();
+        //        }
+        //});
         // Disable certain mouse clicks
-        document.addEventListener('mousedown', function(event) {
-            if (event.button === 2 || event.button === 1) {
-                event.preventDefault();
-            }
-        });
+        //document.addEventListener('mousedown', function(event) {
+        //    if (event.button === 2 || event.button === 1) {
+        //        event.preventDefault();
+        //    }
+        //});
 
         function submitForm() {
+            // --- START TIMER: recorded the instant button is clicked ---
+            var startTime = performance.now();
+ 
+            // Hide previous results and timer before new submission
+            document.getElementById('predictedSize').style.display = 'none';
+            document.getElementById('timeTaken').style.display = 'none';
+            document.getElementById('error').style.display = 'none'; 
+          
             const gender = document.getElementById('gender').value;
             const formData = {
                 gender: gender,
@@ -255,7 +268,8 @@
 
             console.log('Form data being sent:', formData);
 
-            fetch('http://3.135.111.197:5000/api/predict_size', { // (1) 'http://3.135.111.197:5000/api/predict_size'; (2) https://api.fitezapp.com:5000/api/predict_size; 
+          fetch('https://api.fitezapp.com/api/predict_size', {  
+          //fetch('http://3.135.111.197:5000/api/predict_size', { // (1) 'http://3.135.111.197:5000/api/predict_size'; (2) https://api.fitezapp.com:5000/api/predict_size; 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -265,8 +279,17 @@
             .then(response => response.json())
             .then(data => {
                 if (data.predicted_size) {
+                    // --- STOP TIMER: recorded the instant response is ready to display ---
+                    var endTime = performance.now();
+                    var timeTakenSeconds = ((endTime - startTime) / 1000).toFixed(2);
+                    
                     document.getElementById('predictedSize').innerHTML = `My  Fit: ${data.predicted_size}`;
                     document.getElementById('predictedSize').style.display = 'block';
+
+                    // Display the elapsed time below the result
+                    document.getElementById('timeTaken').innerHTML = `Response time: ${timeTakenSeconds} seconds`;
+                    document.getElementById('timeTaken').style.display = 'block';
+ 
                     document.getElementById('error').style.display = 'none';
                 }
                 else {
